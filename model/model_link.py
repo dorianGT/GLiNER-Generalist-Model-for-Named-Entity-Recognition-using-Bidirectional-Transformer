@@ -64,24 +64,46 @@ def reconstruct_tokens(sentence_tokens, input_ids):
     reconstructed_tokens = []
     first_subtoken_ids = []
     current_word = ""
+    current_word_has_id = False  # To track if the current word already has an ID
 
     for i, token in enumerate(sentence_tokens):
+        # New word starts
         if token.startswith("▁"):
+            # Save the previous word if it exists
             if current_word:
                 reconstructed_tokens.append(current_word)
+                if not current_word_has_id:
+                    first_subtoken_ids.append(input_ids[i - 1].item())
+            # Start a new word
             current_word = token[1:]
             first_subtoken_ids.append(input_ids[i].item())
+            current_word_has_id = True
+        # Punctuation (considered a new "word")
         elif token in string.punctuation:
-            if current_word:
+            if current_word:  # Save the current word before punctuation
                 reconstructed_tokens.append(current_word)
-                current_word = ""
+                if not current_word_has_id:
+                    first_subtoken_ids.append(input_ids[i - 1].item())
+            current_word = ""
             reconstructed_tokens.append(token)
             first_subtoken_ids.append(input_ids[i].item())
+            current_word_has_id = False
+        # Continuation of the current word
         else:
             current_word += token
+            current_word_has_id = current_word_has_id or (len(first_subtoken_ids) > len(reconstructed_tokens))
 
+    # Add the last word if it exists
     if current_word:
         reconstructed_tokens.append(current_word)
+        if not current_word_has_id:
+            first_subtoken_ids.append(input_ids[-1].item())
+
+    # Validation step
+    if len(reconstructed_tokens) != len(first_subtoken_ids):
+        raise ValueError(
+            f"Mismatch: {len(reconstructed_tokens)} reconstructed tokens vs {len(first_subtoken_ids)} first subtoken IDs"
+        )
 
     return reconstructed_tokens, first_subtoken_ids
 
@@ -312,7 +334,7 @@ def spans_to_text(reconstructed_tokens, spans_result):
 
 
 class EntityDetectionModel:
-    def __init__(self, model_path="model_fullNewBCE28.pth"):
+    def __init__(self, model_path="model_fullNewBCE29.pth"):
         """
         Initializes and loads the model from a given path.
 
