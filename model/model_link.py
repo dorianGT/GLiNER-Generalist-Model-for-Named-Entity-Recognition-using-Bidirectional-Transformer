@@ -303,7 +303,7 @@ def spans_to_text(reconstructed_tokens, spans_result):
                 sentence_output_str += '{' + ' '.join(reconstructed_tokens[span[0]:span[1] + 1]) + '} [' + entity_type + '] '
                 span_detected = True
                 last_ind = span[1]
-        if not span_detected and last_ind != index:
+        if not span_detected and last_ind < index:
             last_ind = -1
             sentence_output_str += token + ' '
 
@@ -312,7 +312,7 @@ def spans_to_text(reconstructed_tokens, spans_result):
 
 
 class EntityDetectionModel:
-    def __init__(self, model_path="model_fullNewBCE26.pth"):
+    def __init__(self, model_path="model_fullNewBCE28.pth"):
         """
         Initializes and loads the model from a given path.
 
