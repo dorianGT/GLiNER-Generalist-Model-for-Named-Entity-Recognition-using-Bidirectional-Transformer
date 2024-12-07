@@ -130,13 +130,20 @@ output_frame = ctk.CTkFrame(content, fg_color="white", corner_radius=15)
 output_frame.grid(row=7, column=1, columnspan=2, padx=(10, 20), pady=20, sticky="nsew")
 
 # Output Textbox (use CTkTextbox for consistent styling)
-# output_textbox = ctk.CTkTextbox(output_frame, width=300, height=200, corner_radius=10, border_width=1, border_color="lightgray")
-# output_textbox.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
-# output_textbox.configure(state="disabled")
-output_textbox = tk.Text(output_frame, width=40, height=8, wrap=tk.WORD, bg="white", fg="black", bd=0, highlightthickness=0, relief="flat", font=("Arial", 15))
-output_textbox.pack(expand=False, fill=tk.BOTH, padx=10, pady=10)
+output_textbox = tk.Text(output_frame, width=40, height=8, wrap=tk.WORD, bg="lightgray", fg="black", bd=0, highlightthickness=0, relief="flat", font=("Arial", 15))
+output_textbox.pack(side="left", expand=True, fill=tk.BOTH, padx=10, pady=10)
+
+# Adding scrollbar for vertical scrolling
+scrollbar = tk.Scrollbar(output_frame, orient="vertical", command=output_textbox.yview)
+scrollbar.pack(side="right", fill="y", padx=10)
+
+# Link the scrollbar with the output_textbox
+output_textbox.config(yscrollcommand=scrollbar.set)
+
+# Disable the Textbox to make it read-only
 output_textbox.configure(state="disabled")
-# Submit Button centré entre les deux colonnes
+
+# Submit Button centered between the two columns
 submit_button = ctk.CTkButton(
     content, 
     text="Submit", 
@@ -145,8 +152,8 @@ submit_button = ctk.CTkButton(
         label_entry, 
         output_textbox, 
         entityDetectionModel, 
-        nested_ner_switch.get(),  # Passer l'état du toggle
-        threshold_slider.get()   # Passer la valeur du slider
+        nested_ner_switch.get(),  # Pass the state of the toggle
+        threshold_slider.get()   # Pass the value of the slider
     ),
     width=200, 
     height=40, 
