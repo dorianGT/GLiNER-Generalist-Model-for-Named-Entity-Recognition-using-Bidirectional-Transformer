@@ -133,8 +133,8 @@ output_frame.grid(row=7, column=1, columnspan=2, padx=(10, 20), pady=20, sticky=
 # output_textbox = ctk.CTkTextbox(output_frame, width=300, height=200, corner_radius=10, border_width=1, border_color="lightgray")
 # output_textbox.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
 # output_textbox.configure(state="disabled")
-output_textbox = tk.Text(output_frame, width=40, height=10, wrap=tk.WORD, bg="white", fg="black", bd=0, highlightthickness=0, relief="flat", font=("Arial", 15))
-output_textbox.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
+output_textbox = tk.Text(output_frame, width=40, height=8, wrap=tk.WORD, bg="white", fg="black", bd=0, highlightthickness=0, relief="flat", font=("Arial", 15))
+output_textbox.pack(expand=False, fill=tk.BOTH, padx=10, pady=10)
 output_textbox.configure(state="disabled")
 # Submit Button centré entre les deux colonnes
 submit_button = ctk.CTkButton(
