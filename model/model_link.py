@@ -334,7 +334,7 @@ def spans_to_text(reconstructed_tokens, spans_result):
 
 
 class EntityDetectionModel:
-    def __init__(self, model_path="model_fullNewBCE29.pth"):
+    def __init__(self, model_path="model_fullNewBCE31.pth"):
         """
         Initializes and loads the model from a given path.
 
