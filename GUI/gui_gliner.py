@@ -36,7 +36,7 @@ content.grid_columnconfigure(1, weight=1)  # Second column (inputs and outputs) 
 content.grid_columnconfigure(2, weight=0, minsize=10)  # Third column for placing the threshold and toggle next to each other
 
 # Input Fields and Labels (position labels on top of the input fields)
-input_label = ctk.CTkLabel(content, text="Input Text", font=("Arial", 16), text_color="#f53d99")
+input_label = ctk.CTkLabel(content, text="Input Text", font=("Arial", 16, "bold"), text_color="#f53d99")
 input_label.grid(row=0, column=1, padx=(10, 20), pady=10, sticky="w")
 
 # Replace CTkEntry with CTkTextbox for multi-line input
@@ -44,14 +44,14 @@ input_textbox = ctk.CTkTextbox(content, width=300, height=100, corner_radius=10,
 input_textbox.grid(row=1, column=1, padx=(10, 20), pady=10, sticky="nsew")
 
 # Label Text (now placed to the right of the input_textbox)
-label_label = ctk.CTkLabel(content, text="Label Text", font=("Arial", 16), text_color="#f53d99")
+label_label = ctk.CTkLabel(content, text="Label Text", font=("Arial", 16, "bold"), text_color="#f53d99")
 label_label.grid(row=0, column=2, padx=(10, 20), pady=10, sticky="w")
 
 label_entry = ctk.CTkTextbox(content, width=300, height=40, corner_radius=10, border_width=1, border_color="lightgray")
 label_entry.grid(row=1, column=2, padx=(10, 20), pady=10, sticky="nsew")
 
 # Nested NER Title
-parameters_title = ctk.CTkLabel(content, text="Parameters", font=("Arial", 16), text_color="#f53d99")
+parameters_title = ctk.CTkLabel(content, text="Parameters", font=("Arial", 16, "bold"), text_color="#f53d99")
 parameters_title.grid(row=3, column=1, padx=(10, 20), pady=10, sticky="w")
 
 nested_ner_label = ctk.CTkLabel(content, text="Nested NER", font=("Arial", 16), text_color="#f53d99")
@@ -122,12 +122,12 @@ threshold_value_entry.bind("<FocusOut>", update_slider_from_entry)
 threshold_value_entry.bind("<Return>", update_slider_from_entry)
 
 # Output Label with hover effect
-output_label = ctk.CTkLabel(content, text="Output", font=("Arial", 16), text_color="#f53d99")
+output_label = ctk.CTkLabel(content, text="Output", font=("Arial", 16, "bold"), text_color="#f53d99")
 output_label.grid(row=6, column=1, padx=(10, 20), pady=10, sticky="w")
 
 # Content frame with the same style as input blocks
 output_frame = ctk.CTkFrame(content, fg_color="white", corner_radius=15)
-output_frame.grid(row=7, column=1, columnspan=2, padx=(10, 20), pady=20, sticky="nsew")
+output_frame.grid(row=7, column=1, columnspan=2, padx=(10, 20), pady=10, sticky="nsew")
 
 # Output Textbox (use CTkTextbox for consistent styling)
 output_textbox = tk.Text(output_frame, width=40, height=8, wrap=tk.WORD, bg="lightgray", fg="black", bd=0, highlightthickness=0, relief="flat", font=("Arial", 15))
@@ -145,21 +145,22 @@ output_textbox.configure(state="disabled")
 
 # Submit Button centered between the two columns
 submit_button = ctk.CTkButton(
-    content, 
-    text="Submit", 
+    content,
+    text="Submit",
     command=lambda: submit_action(
-        input_textbox, 
-        label_entry, 
-        output_textbox, 
-        entityDetectionModel, 
-        nested_ner_switch.get(),  # Pass the state of the toggle
-        threshold_slider.get()   # Pass the value of the slider
+        input_textbox,
+        label_entry,
+        output_textbox,
+        entityDetectionModel,
+        nested_ner_switch.get(),
+        threshold_slider.get()
     ),
-    width=200, 
-    height=40, 
-    corner_radius=10, 
-    fg_color="#f53d99", 
-    hover_color="#d31f75"
+    width=200,
+    height=50,
+    corner_radius=10,
+    fg_color="#d31f75",
+    hover_color="#ff6699",
+    font=("Arial", 16, "bold")
 )
 submit_button.grid(row=8, column=1, columnspan=2, pady=10, padx=20, sticky="nsew")
 
