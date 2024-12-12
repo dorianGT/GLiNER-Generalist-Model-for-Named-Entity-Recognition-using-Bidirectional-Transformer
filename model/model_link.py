@@ -276,40 +276,6 @@ def get_spans_result(spans, span_scores, binary_span_scores_list, first_subtoken
 
     return spans_result
 
-# def clean_spans_nested(spans_result):
-#     """
-#     Cleans the nested spans, keeping only the largest ones.
-
-#     Args:
-#         spans_result (list): List of spans with detected entities.
-
-#     Returns:
-#         list: Cleaned spans with detected entities, keeping only the largest ones.
-#     """
-#     cleaned_spans = []
-    
-#     # Sort spans by their start index, and if they are the same, by their end index in descending order
-#     spans_result.sort(key=lambda x: (x[0][0], -x[0][1]))
-    
-#     for current_span, current_entity_type in spans_result:
-#         # Check if the current span is contained in any already added span
-#         contained = False
-#         for saved_span, _ in cleaned_spans:
-#             # If current_span is contained in saved_span, skip it
-#             if saved_span[0] <= current_span[0] and saved_span[1] >= current_span[1]:
-#                 contained = True
-#                 break
-        
-#         # If it's not contained in any span, add it
-#         if not contained:
-#             cleaned_spans.append((current_span, current_entity_type))
-    
-#     # Print cleaned spans
-#     print("Cleaned spans with detected entities:")
-#     for span, entity_type in cleaned_spans:
-#         print(f"{span} -> {entity_type}")
-    
-#     return cleaned_spans
 
 def spans_to_text(reconstructed_tokens, spans_result):
     """
@@ -337,6 +303,7 @@ def spans_to_text(reconstructed_tokens, spans_result):
 
     print(f'Result : {sentence_output_str}')
     return sentence_output_str
+
 
 def clean_spans(spans_result, mode="flat"):
     """
