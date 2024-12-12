@@ -245,65 +245,71 @@ def get_spans_result(spans, span_scores, binary_span_scores_list, first_subtoken
 
     Args:
         spans (list): List of spans.
-        span_scores (Tensor): Model span scores.
+        span_scores (Tensor): Model span scores [batch, num_spans, num_classes].
         binary_span_scores_list (list): Binary span scores.
         first_subtoken_ids (list): List of first subtoken IDs.
         entity_types_to_detect (list): List of entity types to detect.
 
     Returns:
-        list: Spans with detected entities.
+        list: Spans with detected entities and their scores.
     """
     spans_result = []
     max_index = len(first_subtoken_ids)
 
+    # Remove batch dimension for easier processing (assuming batch size is 1)
+    span_scores = span_scores.squeeze(0)  # Now [num_spans, num_classes]
+
     for i, example in enumerate(binary_span_scores_list):
-        for j, span_scores in enumerate(example):
+        for j, binary_scores in enumerate(example):
             associated_span = spans[j]
             if associated_span[0] < max_index and associated_span[1] < max_index:
-                for k, score in enumerate(span_scores[:len(entity_types_to_detect)]):
-                    if score == 1:
-                        spans_result.append((associated_span, entity_types_to_detect[k]))
+                for k, binary_score in enumerate(binary_scores[:len(entity_types_to_detect)]):
+                    if binary_score == 1:  # Entity detected for this span
+                        # Append span, entity type, and actual score from span_scores
+                        spans_result.append(
+                            (associated_span, entity_types_to_detect[k], span_scores[j, k].item())
+                        )
 
     print("Spans with detected entities:")
-    for span, entity_type in spans_result:
-        print(f"{span} -> {entity_type}")
+    for span, entity_type, score in spans_result:
+        print(f"{span} -> {entity_type} (Score: {score:.4f})")
 
     return spans_result
 
-def clean_spans_nested(spans_result):
-    """
-    Cleans the nested spans, keeping only the largest ones.
+# def clean_spans_nested(spans_result):
+#     """
+#     Cleans the nested spans, keeping only the largest ones.
 
-    Args:
-        spans_result (list): List of spans with detected entities.
+#     Args:
+#         spans_result (list): List of spans with detected entities.
 
-    Returns:
-        list: Cleaned spans with detected entities, keeping only the largest ones.
-    """
-    cleaned_spans = []
+#     Returns:
+#         list: Cleaned spans with detected entities, keeping only the largest ones.
+#     """
+#     cleaned_spans = []
     
-    # Sort spans by their start index, and if they are the same, by their end index in descending order
-    spans_result.sort(key=lambda x: (x[0][0], -x[0][1]))
+#     # Sort spans by their start index, and if they are the same, by their end index in descending order
+#     spans_result.sort(key=lambda x: (x[0][0], -x[0][1]))
     
-    for current_span, current_entity_type in spans_result:
-        # Check if the current span is contained in any already added span
-        contained = False
-        for saved_span, _ in cleaned_spans:
-            # If current_span is contained in saved_span, skip it
-            if saved_span[0] <= current_span[0] and saved_span[1] >= current_span[1]:
-                contained = True
-                break
+#     for current_span, current_entity_type in spans_result:
+#         # Check if the current span is contained in any already added span
+#         contained = False
+#         for saved_span, _ in cleaned_spans:
+#             # If current_span is contained in saved_span, skip it
+#             if saved_span[0] <= current_span[0] and saved_span[1] >= current_span[1]:
+#                 contained = True
+#                 break
         
-        # If it's not contained in any span, add it
-        if not contained:
-            cleaned_spans.append((current_span, current_entity_type))
+#         # If it's not contained in any span, add it
+#         if not contained:
+#             cleaned_spans.append((current_span, current_entity_type))
     
-    # Print cleaned spans
-    print("Cleaned spans with detected entities:")
-    for span, entity_type in cleaned_spans:
-        print(f"{span} -> {entity_type}")
+#     # Print cleaned spans
+#     print("Cleaned spans with detected entities:")
+#     for span, entity_type in cleaned_spans:
+#         print(f"{span} -> {entity_type}")
     
-    return cleaned_spans
+#     return cleaned_spans
 
 def spans_to_text(reconstructed_tokens, spans_result):
     """
@@ -331,6 +337,60 @@ def spans_to_text(reconstructed_tokens, spans_result):
 
     print(f'Result : {sentence_output_str}')
     return sentence_output_str
+
+def clean_spans(spans_result, mode="flat"):
+    """
+    Cleans the spans based on the specified mode.
+
+    Args:
+        spans_result (list): List of spans with detected entities and their scores.
+        mode (str): Either "flat" or "nested". "flat" removes all overlaps, keeping the highest-scoring spans.
+                    "nested" allows fully nested spans but avoids partial overlaps.
+
+    Returns:
+        list: Cleaned spans with detected entities.
+    """
+    cleaned_spans = []
+    
+    if mode == "flat":
+        # Sort spans by score descending, and if scores are the same, by start index ascending
+        spans_result.sort(key=lambda x: (-x[2], x[0][0]))
+        
+        for current_span, current_entity_type, _ in spans_result:
+            # Check if the current span overlaps with any already added span
+            overlaps = False
+            for saved_span, _ in cleaned_spans:
+                if not (current_span[1] < saved_span[0] or current_span[0] > saved_span[1]):
+                    overlaps = True
+                    break
+            
+            # If no overlap, add it
+            if not overlaps:
+                cleaned_spans.append((current_span, current_entity_type))
+    
+    elif mode == "nested":
+        # Sort spans by their start index, and if they are the same, by end index in descending order
+        spans_result.sort(key=lambda x: (x[0][0], -x[0][1]))
+        
+        for current_span, current_entity_type, _ in spans_result:
+            # Check for partial overlap
+            partial_overlap = False
+            for saved_span, _ in cleaned_spans:
+                if (current_span[0] < saved_span[1] and current_span[1] > saved_span[0] and 
+                    not (current_span[0] > saved_span[0] and current_span[1] < saved_span[1])):
+                    partial_overlap = True
+                    break
+            
+            # Add if no partial overlap
+            if not partial_overlap:
+                cleaned_spans.append((current_span, current_entity_type))
+    
+    # Print cleaned spans
+    print(f"Cleaned spans ({mode} mode) with detected entities:")
+    for span, entity_type in cleaned_spans:
+        print(f"{span} -> {entity_type}")
+    
+    return cleaned_spans
 
 
 class EntityDetectionModel:
@@ -389,14 +449,27 @@ class EntityDetectionModel:
         span_scores = evaluate_model(self.model, input_ids_tensor, attention_mask_tensor, entity_tensor, 
                                      spans_tensor, sentence_mask_tensor, entity_mask_tensor)
 
+        # binary_span_scores = threshold_span_scores(span_scores, threshold_score)
+        # masked_binary_span_scores = max_mask_span_scores(span_scores, binary_span_scores)
+        # binary_span_scores_list = masked_binary_span_scores.cpu().numpy().tolist()
+
+        # spans_result = get_spans_result(spans, span_scores, binary_span_scores_list, first_subtoken_ids, entity_types_to_detect)
+        
+        # if not nested_ner:
+        #     spans_result = clean_spans_nested(spans_result)
+        
         binary_span_scores = threshold_span_scores(span_scores, threshold_score)
         masked_binary_span_scores = max_mask_span_scores(span_scores, binary_span_scores)
         binary_span_scores_list = masked_binary_span_scores.cpu().numpy().tolist()
 
+        # Collect spans with their scores
         spans_result = get_spans_result(spans, span_scores, binary_span_scores_list, first_subtoken_ids, entity_types_to_detect)
-        
+
+        # Choose cleaning mode
         if not nested_ner:
-            spans_result = clean_spans_nested(spans_result)
+            spans_result = clean_spans(spans_result, mode="flat")
+        else:
+            spans_result = clean_spans(spans_result, mode="nested")
 
         sentence_output_str = spans_to_text(reconstructed_tokens, spans_result)
 
